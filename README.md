@@ -1,4 +1,4 @@
-# Satellite Data City Summary
+# sat-cty Satellite Data City Summary
 
 ### Authors: 
  - Arthur Elmes (arthur.elmes@gmail.com)
