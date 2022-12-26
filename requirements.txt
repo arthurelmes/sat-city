@@ -4,3 +4,4 @@ odc-stac~= 0.3.4
 cirrus-lib~=0.8.1
 pystac~=1.4.0
 odc-stac~=0.3.1
+pyproj~=3.4.1
