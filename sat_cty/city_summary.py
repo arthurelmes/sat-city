@@ -1,8 +1,4 @@
 from pystac_client import Client
-from cirrus.lib.transfer import download_item_assets
-import pystac
-import os
-from odc.stac import stac_load
 
 landsat_sr_endpoint = "https://landsatlook.usgs.gov/stac-server"
 
@@ -47,18 +43,5 @@ search = cat.search(**search_kwargs)
 
 items = search.get_all_items()
 
-items_local = []
-
 for item in items:
     print(item.id)
-    dl_dir = "/tmp/sat-cty/"
-    bands = ["blue", "green", "red", "nir08"]
-    os.makedirs(dl_dir, exist_ok=True)
-    item = pystac.Item.from_dict((download_item_assets(item=item.to_dict(), path=dl_dir, assets=bands)))
-    items_local.append(item)
-
-local_ic = pystac.ItemCollection(items=items_local)
-
-dc = stac_load(local_ic)
-
-print(dc)
