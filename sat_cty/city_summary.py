@@ -5,8 +5,9 @@ import os
 from odc.stac import stac_load
 
 landsat_sr_endpoint = "https://landsatlook.usgs.gov/stac-server"
+earthsearch_stac_endpoint = "https://earth-search.aws.element84.com/v0"
 
-cat = Client.open(landsat_sr_endpoint)
+cat = Client.open(earthsearch_stac_endpoint)
 
 geom = {
     "type": "Polygon",
@@ -38,7 +39,8 @@ geom = {
 
 search_kwargs = {
     "max_items": 15,
-    "collections": ["landsat-c2l2-sr"],
+    "collections": ["sentinel-s2-l2a-cogs"],
+    # "collections": ["landsat-c2l2-sr"],
     "datetime": "2020-01-01/2020-01-16",
     "intersects": geom
 }
@@ -52,7 +54,7 @@ items_local = []
 for item in items:
     print(item.id)
     dl_dir = "/tmp/sat-cty/"
-    bands = ["blue", "green", "red", "nir08"]
+    bands = ["B02", "B03", "B04", "B08"]
     os.makedirs(dl_dir, exist_ok=True)
     item = pystac.Item.from_dict((download_item_assets(item=item.to_dict(), path=dl_dir, assets=bands)))
     items_local.append(item)
