@@ -15,7 +15,7 @@
  With conda installed, run the following lines in the terminal:
 ```
 conda env create -f sat-cty-conda-env.yml
-conda activate sat-city
+conda activate sat-cty
 pip install -r requirements.txt
 ```
 
