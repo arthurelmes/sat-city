@@ -3,12 +3,13 @@ from cirrus.lib.transfer import download_item_assets
 import pystac
 import os
 from odc.stac import stac_load
+from pyproj import CRS
 
 landsat_sr_endpoint = "https://landsatlook.usgs.gov/stac-server"
 earthsearch_stac_endpoint = "https://earth-search.aws.element84.com/v0"
 
 cat = Client.open(earthsearch_stac_endpoint)
-
+bbox = [-80.04469820810723, 39.5691199181569, -79.8936372965484, 39.67742545310713]
 geom = {
     "type": "Polygon",
         "coordinates": [
@@ -51,16 +52,25 @@ items = search.get_all_items()
 
 items_local = []
 
-for item in items:
-    print(item.id)
-    dl_dir = "/tmp/sat-cty/"
-    bands = ["B02", "B03", "B04", "B08"]
-    os.makedirs(dl_dir, exist_ok=True)
-    item = pystac.Item.from_dict((download_item_assets(item=item.to_dict(), path=dl_dir, assets=bands)))
-    items_local.append(item)
+# for item in items:
+#     print(item.id)
+#     dl_dir = "/tmp/sat-cty/"
+#     bands = ["B02", "B03", "B04", "B08"]
+#     os.makedirs(dl_dir, exist_ok=True)
+#     item = pystac.Item.from_dict((download_item_assets(item=item.to_dict(), path=dl_dir, assets=bands)))
+#     items_local.append(item)
 
 local_ic = pystac.ItemCollection(items=items_local)
 
-dc = stac_load(local_ic)
+output_crs = CRS.from_epsg(items[0].properties["proj:epsg"])
+
+dc = stac_load(
+        items=items.items, 
+        bands=["B02", "B03", "B04", "B08"],
+        resolution=10.0,
+        groupby="solar_day",
+        crs=output_crs,
+        bbox=bbox
+        )
 
 print(dc)
