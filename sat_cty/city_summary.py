@@ -121,6 +121,21 @@ def make_datacube(items: pystac.ItemCollection, bands, resolution) -> Dataset:
     return dc
 
 
+def calc_ndvi(dc: Dataset, red_band_name: str, nir_band_name: str) -> Dataset:
+    """Calculate NDVI for a datacube.
+    Args:
+        dc (Dataset): datacube with at least red and nir bands
+        red_band_name (str): name of red band variable
+        nir_band_name (str): name of near infrared band variable
+    Returns:
+        dc (Dataset): datacube with NDVI variable
+    """
+
+    dc["NDVI"] = (dc[nir_band_name] - dc[red_band_name])/(dc[nir_band_name] + dc[red_band_name])
+
+    return dc
+
+
 if __name__ == "__main__":
 
     # set up logging
@@ -147,3 +162,4 @@ if __name__ == "__main__":
     items = download_items_to_local(items, bands, wkdir)
 
     dc = make_datacube(items=items, bands=bands, resolution=10)
+    ndvi_dc = calc_ndvi(dc)
