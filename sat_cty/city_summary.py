@@ -7,6 +7,8 @@ from pyproj import CRS
 import logging
 import sys
 from xarray import Dataset
+import rioxarray
+from pyproj import Proj
 
 
 def bbox_to_geom(bbox: list) -> dict:
@@ -46,6 +48,7 @@ def bbox_to_geom(bbox: list) -> dict:
   }
 
     return geometry
+
 
 def run_query(endpoint, collections, date_range, geometry) -> pystac.ItemCollection:
     """Use provided params to run pystac search.
@@ -90,7 +93,7 @@ def download_items_to_local(item_col: pystac.ItemCollection, bands: list, wkdir:
         dl_dir = os.path.join(wkdir, item.id)
 
         # check if the assets are already downloaded, skip if so
-        if os.path.basename(item.assets[bands[-1]].href) not in dl_dir:
+        if os.path.basename(item.assets[bands[-1]].href) not in os.listdir(dl_dir):
             item = pystac.Item.from_dict((download_item_assets(item=item.to_dict(), path=dl_dir, assets=bands)))
 
         items_local.append(item)
@@ -98,6 +101,7 @@ def download_items_to_local(item_col: pystac.ItemCollection, bands: list, wkdir:
     local_ic = pystac.ItemCollection(items=items_local)
 
     return local_ic
+
 
 def make_datacube(items: pystac.ItemCollection, bands, resolution) -> Dataset:
     """Convert stac item collection into xarray Dataset object. 
@@ -112,7 +116,7 @@ def make_datacube(items: pystac.ItemCollection, bands, resolution) -> Dataset:
     dc = stac_load(
             items=items.items, 
             bands=bands,
-            resolution=10.0,
+            resolution=resolution,
             groupby="solar_day",
             crs=output_crs,
             bbox=bbox
@@ -157,9 +161,28 @@ if __name__ == "__main__":
 
     bbox = [-80.04469820810723, 39.5691199181569, -79.8936372965484, 39.67742545310713]
     geom = bbox_to_geom(bbox)
+    query_point = (-80.0,39.6)
 
     items = run_query(date_range="2020-01-01/2020-01-16", geometry=geom, collections=collections, endpoint=earthsearch_stac_endpoint)
     items = download_items_to_local(items, bands, wkdir)
 
     dc = make_datacube(items=items, bands=bands, resolution=10)
-    ndvi_dc = calc_ndvi(dc, red_band_name="B04", nir_band_name="B08")
+    dc = calc_ndvi(dc, red_band_name="B04", nir_band_name="B08")
+
+    # convert query lon/lat to UTM meters
+    p = Proj(CRS.from_epsg(items[0].properties["proj:epsg"]), preserve_units=False)
+    x, y = p(query_point[0], query_point[1])
+
+    # get the row/col from the lon/lat based on the bounds and the resolution
+    # TODO review the below with additional (but not too much) caffeine
+    bounds = dc.NDVI.rio.bounds()
+    x_res = dc.NDVI.rio.resolution()[0]
+    y_res = dc.NDVI.rio.resolution()[1]
+
+    x_offset_m = x - bounds[0]
+    y_offset_m = y - bounds[3]
+
+    x_offset_cols = int(round(x_offset_m / x_res, 0))
+    y_offset_cols = int(round(y_offset_m / y_res, 0))
+
+    sample_coord_array_1d = dc.NDVI.isel(x=x_offset_cols, y=y_offset_cols)
