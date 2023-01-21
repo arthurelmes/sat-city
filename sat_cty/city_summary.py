@@ -6,6 +6,7 @@ from odc.stac import stac_load
 from pyproj import CRS
 import logging
 import sys
+from xarray import Dataset
 
 
 def bbox_to_geom(bbox: list) -> dict:
@@ -85,38 +86,27 @@ def download_items_to_local(item_col: pystac.ItemCollection, bands: list, wkdir:
 
     for item in item_col:
         logging.info("Downloading assets for item: %s", item.id)
-        os.makedirs(wkdir, exist_ok=True)
-        item = pystac.Item.from_dict((download_item_assets(item=item.to_dict(), path=wkdir, assets=bands)))
+
+        dl_dir = os.path.join(wkdir, item.id)
+
+        # check if the assets are already downloaded, skip if so
+        if os.path.basename(item.assets[bands[-1]].href) not in dl_dir:
+            item = pystac.Item.from_dict((download_item_assets(item=item.to_dict(), path=dl_dir, assets=bands)))
+
         items_local.append(item)
 
     local_ic = pystac.ItemCollection(items=items_local)
 
     return local_ic
 
-
-if __name__ == "__main__":
-
-    # set up logging
-    # logging
-    logging.basicConfig(
-        stream=sys.stdout,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        level=logging.INFO,
-    )
-
-    wkdir = "/tmp/sat-cty"
-    landsat_sr_endpoint = "https://landsatlook.usgs.gov/stac-server"
-    earthsearch_stac_endpoint = "https://earth-search.aws.element84.com/v0"
-    collections = ["sentinel-s2-l2a-cogs"]
-
-    bands = ["B02", "B03", "B04", "B08"]
-
-    bbox = [-80.04469820810723, 39.5691199181569, -79.8936372965484, 39.67742545310713]
-    geom = bbox_to_geom(bbox)
-
-    items = run_query(date_range="2020-01-01/2020-01-16", geometry=geom, collections=collections, endpoint=earthsearch_stac_endpoint)
-    items = download_items_to_local(items, bands, wkdir)
-
+def make_datacube(items: pystac.ItemCollection, bands, resolution) -> Dataset:
+    """Convert stac item collection into xarray Dataset object. 
+    Temporal compositing hard-coded to solar_day for now.
+    Arg:
+        items (pystac.ItemCollection): items to convert to datacube
+    Return:
+        dc (Dataset): space-time datacube    
+    """
     output_crs = CRS.from_epsg(items[0].properties["proj:epsg"])
 
     dc = stac_load(
@@ -128,4 +118,32 @@ if __name__ == "__main__":
             bbox=bbox
             )
 
-    print(dc)
+    return dc
+
+
+if __name__ == "__main__":
+
+    # set up logging
+    logging.basicConfig(
+        stream=sys.stdout,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        level=logging.INFO,
+    )
+
+    wkdir = "/tmp/sat-cty"
+    
+    # currently only the sentinel-2 data are downloadable from this script b/c missing auth for landsat
+    # landsat_sr_endpoint = "https://landsatlook.usgs.gov/stac-server" 
+
+    earthsearch_stac_endpoint = "https://earth-search.aws.element84.com/v0"
+    collections = ["sentinel-s2-l2a-cogs"]
+
+    bands = ["B02", "B03", "B04", "B08"]
+
+    bbox = [-80.04469820810723, 39.5691199181569, -79.8936372965484, 39.67742545310713]
+    geom = bbox_to_geom(bbox)
+
+    items = run_query(date_range="2020-01-01/2020-01-16", geometry=geom, collections=collections, endpoint=earthsearch_stac_endpoint)
+    items = download_items_to_local(items, bands, wkdir)
+
+    dc = make_datacube(items=items, bands=bands, resolution=10)
