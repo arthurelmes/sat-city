@@ -186,3 +186,4 @@ if __name__ == "__main__":
     y_offset_cols = int(round(y_offset_m / y_res, 0))
 
     sample_coord_array_1d = dc.NDVI.isel(x=x_offset_cols, y=y_offset_cols)
+
