@@ -162,4 +162,4 @@ if __name__ == "__main__":
     items = download_items_to_local(items, bands, wkdir)
 
     dc = make_datacube(items=items, bands=bands, resolution=10)
-    ndvi_dc = calc_ndvi(dc)
+    ndvi_dc = calc_ndvi(dc, red_band_name="B04", nir_band_name="B08")
