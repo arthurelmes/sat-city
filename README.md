@@ -16,8 +16,4 @@
 ```
 conda env create -f sat-cty-conda-env.yml
 conda activate sat-cty
-pip install -r requirements.txt
 ```
-
-Note: you can actually combine the `pip` installs with the conda environment yml, but for now
-I'm keeping them separate for simpler development.
