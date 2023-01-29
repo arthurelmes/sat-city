@@ -78,10 +78,11 @@ def s3_to_local(item: pystac.Item, dl_folder: str) -> pystac.Item:
     """Take in pystac item, download its assets, and update the asset href to point
     to dl location.
     Args:
-        item (pystac.Item)
-        dl_folder (str)
+        item (pystac.Item): the item to download the assets for
+        dl_folder (str): the path to put the files
 
     Returns:
+        item (pystac.Item): the item with downloaded assets and updated asset hrefs
         
     """
 
@@ -89,7 +90,7 @@ def s3_to_local(item: pystac.Item, dl_folder: str) -> pystac.Item:
         fn = os.path.basename(v["href"])
         f_path = os.path.join(dl_folder, fn)
         if not os.path.exists(f_path):
-            with requests.get(v["href"], stream=True) as r:
+            with requests.get(v["href"], timeout=60, stream=True) as r:
                 r.raise_for_status()
                 with open(f_path, 'wb') as f:
                     for chunk in r.iter_content(chunk_size=8192): 
@@ -181,7 +182,7 @@ if __name__ == "__main__":
     
     # currently only the sentinel-2 data are downloadable from this script b/c missing auth for landsat
     # landsat_sr_endpoint = "https://landsatlook.usgs.gov/stac-server" 
-    
+
     earthsearch_stac_endpoint = "https://earth-search.aws.element84.com/v0"
     collections = ["sentinel-s2-l2a-cogs"]
 
