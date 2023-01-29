@@ -1,5 +1,4 @@
 from pystac_client import Client
-from cirrus.lib.transfer import download_item_assets
 import pystac
 import os
 from odc.stac import stac_load
@@ -9,6 +8,7 @@ import sys
 from xarray import Dataset
 import rioxarray
 from pyproj import Proj
+import requests
 
 
 def bbox_to_geom(bbox: list) -> dict:
@@ -74,6 +74,32 @@ def run_query(endpoint, collections, date_range, geometry) -> pystac.ItemCollect
     return items
 
 
+def s3_to_local(item: pystac.Item, dl_folder: str) -> pystac.Item:
+    """Take in pystac item, download its assets, and update the asset href to point
+    to dl location.
+    Args:
+        item (pystac.Item)
+        dl_folder (str)
+
+    Returns:
+        
+    """
+
+    for k, v in item["assets"].items():
+        fn = os.path.basename(v["href"])
+        f_path = os.path.join(dl_folder, fn)
+        if not os.path.exists(f_path):
+            response = requests.get(v["href"])
+
+            with open(f_path, "wb") as f:
+                f.write(response.content)
+            
+        v["href"] = f_path
+
+
+    return item
+
+
 def download_items_to_local(item_col: pystac.ItemCollection, bands: list, wkdir: str) -> pystac.ItemCollection:
     """Download items locally, using appropriate download method.
     Args:
@@ -96,7 +122,7 @@ def download_items_to_local(item_col: pystac.ItemCollection, bands: list, wkdir:
 
         # check if the assets are already downloaded, skip if so
         if os.path.basename(item.assets[bands[-1]].href) not in os.listdir(dl_dir):
-            item = pystac.Item.from_dict((download_item_assets(item=item.to_dict(), path=dl_dir, assets=bands)))
+            item = pystac.Item.from_dict((s3_to_local(item=item.to_dict(), dl_folder=dl_dir)))
 
         items_local.append(item)
 
@@ -188,3 +214,5 @@ if __name__ == "__main__":
     y_offset_cols = int(round(y_offset_m / y_res, 0))
 
     sample_coord_array_1d = dc.NDVI.isel(x=x_offset_cols, y=y_offset_cols)
+
+    print(sample_coord_array_1d)
