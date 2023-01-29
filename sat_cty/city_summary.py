@@ -1,5 +1,4 @@
 from pystac_client import Client
-from cirrus.lib.transfer import download_item_assets
 import pystac
 import os
 from odc.stac import stac_load
@@ -9,6 +8,7 @@ import sys
 from xarray import Dataset
 import rioxarray
 from pyproj import Proj
+import requests
 
 
 def bbox_to_geom(bbox: list) -> dict:
@@ -74,6 +74,33 @@ def run_query(endpoint, collections, date_range, geometry) -> pystac.ItemCollect
     return items
 
 
+def s3_to_local(item: pystac.Item, dl_folder: str) -> pystac.Item:
+    """Take in pystac item, download its assets, and update the asset href to point
+    to dl location.
+    Args:
+        item (pystac.Item): the item to download the assets for
+        dl_folder (str): the path to put the files
+
+    Returns:
+        item (pystac.Item): the item with downloaded assets and updated asset hrefs
+        
+    """
+
+    for v in item["assets"].values():
+        fn = os.path.basename(v["href"])
+        f_path = os.path.join(dl_folder, fn)
+        if not os.path.exists(f_path):
+            with requests.get(v["href"], timeout=60, stream=True) as r:
+                r.raise_for_status()
+                with open(f_path, 'wb') as f:
+                    for chunk in r.iter_content(chunk_size=8192): 
+                        f.write(chunk)
+
+        v["href"] = f_path
+
+    return item
+
+
 def download_items_to_local(item_col: pystac.ItemCollection, bands: list, wkdir: str) -> pystac.ItemCollection:
     """Download items locally, using appropriate download method.
     Args:
@@ -94,9 +121,7 @@ def download_items_to_local(item_col: pystac.ItemCollection, bands: list, wkdir:
 
         os.makedirs(dl_dir, exist_ok=True)
 
-        # check if the assets are already downloaded, skip if so
-        if os.path.basename(item.assets[bands[-1]].href) not in os.listdir(dl_dir):
-            item = pystac.Item.from_dict((download_item_assets(item=item.to_dict(), path=dl_dir, assets=bands)))
+        item = pystac.Item.from_dict((s3_to_local(item=item.to_dict(), dl_folder=dl_dir)))
 
         items_local.append(item)
 
@@ -113,6 +138,9 @@ def make_datacube(items: pystac.ItemCollection, bands, resolution) -> Dataset:
     Return:
         dc (Dataset): space-time datacube    
     """
+
+    logging.info("Making datacube for items: %s", items.items)
+
     output_crs = CRS.from_epsg(items[0].properties["proj:epsg"])
 
     dc = stac_load(
@@ -137,6 +165,8 @@ def calc_ndvi(dc: Dataset, red_band_name: str, nir_band_name: str) -> Dataset:
         dc (Dataset): datacube with NDVI variable
     """
 
+    logging.info("Calculating NDVI for %s", dc)
+
     dc["NDVI"] = (dc[nir_band_name] - dc[red_band_name])/(dc[nir_band_name] + dc[red_band_name])
 
     return dc
@@ -151,7 +181,7 @@ if __name__ == "__main__":
         level=logging.INFO,
     )
 
-    wkdir = "/tmp/sat-cty"
+    wkdir = sys.argv[1] if len(sys.argv) > 1 else "/data/sat-cty"
     
     # currently only the sentinel-2 data are downloadable from this script b/c missing auth for landsat
     # landsat_sr_endpoint = "https://landsatlook.usgs.gov/stac-server" 
@@ -188,3 +218,5 @@ if __name__ == "__main__":
     y_offset_cols = int(round(y_offset_m / y_res, 0))
 
     sample_coord_array_1d = dc.NDVI.isel(x=x_offset_cols, y=y_offset_cols)
+
+    print(sample_coord_array_1d)
