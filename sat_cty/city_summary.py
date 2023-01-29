@@ -85,17 +85,17 @@ def s3_to_local(item: pystac.Item, dl_folder: str) -> pystac.Item:
         
     """
 
-    for k, v in item["assets"].items():
+    for v in item["assets"].values():
         fn = os.path.basename(v["href"])
         f_path = os.path.join(dl_folder, fn)
         if not os.path.exists(f_path):
-            response = requests.get(v["href"])
-
-            with open(f_path, "wb") as f:
-                f.write(response.content)
+            with requests.get(v["href"], stream=True) as r:
+                r.raise_for_status()
+                with open(f_path, 'wb') as f:
+                    for chunk in r.iter_content(chunk_size=8192): 
+                        f.write(chunk)
             
         v["href"] = f_path
-
 
     return item
 
