@@ -177,11 +177,11 @@ if __name__ == "__main__":
         level=logging.INFO,
     )
 
-    wkdir = "/tmp/sat-cty"
+    wkdir = sys.argv[1] if len(sys.argv) > 1 else "/data/sat-cty"
     
     # currently only the sentinel-2 data are downloadable from this script b/c missing auth for landsat
     # landsat_sr_endpoint = "https://landsatlook.usgs.gov/stac-server" 
-
+    
     earthsearch_stac_endpoint = "https://earth-search.aws.element84.com/v0"
     collections = ["sentinel-s2-l2a-cogs"]
 
