@@ -92,6 +92,8 @@ def download_items_to_local(item_col: pystac.ItemCollection, bands: list, wkdir:
 
         dl_dir = os.path.join(wkdir, item.id)
 
+        os.makedirs(dl_dir, exist_ok=True)
+
         # check if the assets are already downloaded, skip if so
         if os.path.basename(item.assets[bands[-1]].href) not in os.listdir(dl_dir):
             item = pystac.Item.from_dict((download_item_assets(item=item.to_dict(), path=dl_dir, assets=bands)))
@@ -186,4 +188,3 @@ if __name__ == "__main__":
     y_offset_cols = int(round(y_offset_m / y_res, 0))
 
     sample_coord_array_1d = dc.NDVI.isel(x=x_offset_cols, y=y_offset_cols)
-
