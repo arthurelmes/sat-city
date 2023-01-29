@@ -95,7 +95,7 @@ def s3_to_local(item: pystac.Item, dl_folder: str) -> pystac.Item:
                 with open(f_path, 'wb') as f:
                     for chunk in r.iter_content(chunk_size=8192): 
                         f.write(chunk)
-            
+
         v["href"] = f_path
 
     return item
@@ -121,9 +121,7 @@ def download_items_to_local(item_col: pystac.ItemCollection, bands: list, wkdir:
 
         os.makedirs(dl_dir, exist_ok=True)
 
-        # check if the assets are already downloaded, skip if so
-        if os.path.basename(item.assets[bands[-1]].href) not in os.listdir(dl_dir):
-            item = pystac.Item.from_dict((s3_to_local(item=item.to_dict(), dl_folder=dl_dir)))
+        item = pystac.Item.from_dict((s3_to_local(item=item.to_dict(), dl_folder=dl_dir)))
 
         items_local.append(item)
 
@@ -140,6 +138,9 @@ def make_datacube(items: pystac.ItemCollection, bands, resolution) -> Dataset:
     Return:
         dc (Dataset): space-time datacube    
     """
+
+    logging.info("Making datacube for items: %s", items.items)
+
     output_crs = CRS.from_epsg(items[0].properties["proj:epsg"])
 
     dc = stac_load(
@@ -163,6 +164,8 @@ def calc_ndvi(dc: Dataset, red_band_name: str, nir_band_name: str) -> Dataset:
     Returns:
         dc (Dataset): datacube with NDVI variable
     """
+
+    logging.info("Calculating NDVI for %s", dc)
 
     dc["NDVI"] = (dc[nir_band_name] - dc[red_band_name])/(dc[nir_band_name] + dc[red_band_name])
 
