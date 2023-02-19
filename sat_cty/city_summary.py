@@ -111,7 +111,10 @@ if __name__ == "__main__":
 
     # convert query lon/lat to UTM meters
     p = Proj(CRS.from_epsg(items[0].properties["proj:epsg"]), preserve_units=False)
+
+    # pylint: disable=unpacking-non-sequence
     x, y = p(query_point[0], query_point[1])
+    # pylint: enable=unpacking-non-sequence
 
     # get the row/col from the lon/lat based on the bounds and the resolution
     # TODO review the below with additional (but not too much) caffeine
