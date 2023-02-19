@@ -1,56 +1,19 @@
 from pystac_client import Client
-import pystac
-import os
+from pystac import ItemCollection
 from odc.stac import stac_load
 from pyproj import CRS
 import logging
 import sys
 from xarray import Dataset
-import rioxarray
 from pyproj import Proj
-import requests
+
+# need to import rioxarray in order to get 'rio' accessor in datacubes
+import rioxarray
+
+from utils import bbox_to_geom, download_items_to_local
 
 
-def bbox_to_geom(bbox: list) -> dict:
-    """Convert a bounding box to a geojson-formatted
-    geometry.
-    Arg:
-        bbox (list): bouning box with coordinate order left, bottom, right, top
-    Return:
-        geometry (dict): geojson-formatted geometry, as a dict  
-    """
-    geometry = {
-      "type": "Polygon",
-          "coordinates": [
-            [
-              [
-                bbox[0],
-                bbox[3]
-              ],
-              [
-                bbox[0],
-                bbox[1]
-              ],
-              [
-                bbox[2],
-                bbox[1]
-              ],
-              [
-                bbox[2],
-                bbox[3]
-              ],
-              [
-                bbox[0],
-                bbox[3]
-              ]
-            ]
-          ],
-  }
-
-    return geometry
-
-
-def run_query(endpoint, collections, date_range, geometry) -> pystac.ItemCollection:
+def run_query(endpoint, collections, date_range, geometry) -> ItemCollection:
     """Use provided params to run pystac search.
     Args:
         endpoint (str): STAC search endpoint url
@@ -74,63 +37,8 @@ def run_query(endpoint, collections, date_range, geometry) -> pystac.ItemCollect
     return items
 
 
-def s3_to_local(item: pystac.Item, dl_folder: str) -> pystac.Item:
-    """Take in pystac item, download its assets, and update the asset href to point
-    to dl location.
-    Args:
-        item (pystac.Item): the item to download the assets for
-        dl_folder (str): the path to put the files
 
-    Returns:
-        item (pystac.Item): the item with downloaded assets and updated asset hrefs
-        
-    """
-
-    for v in item["assets"].values():
-        fn = os.path.basename(v["href"])
-        f_path = os.path.join(dl_folder, fn)
-        if not os.path.exists(f_path):
-            with requests.get(v["href"], timeout=60, stream=True) as r:
-                r.raise_for_status()
-                with open(f_path, 'wb') as f:
-                    for chunk in r.iter_content(chunk_size=8192): 
-                        f.write(chunk)
-
-        v["href"] = f_path
-
-    return item
-
-
-def download_items_to_local(item_col: pystac.ItemCollection, bands: list, wkdir: str) -> pystac.ItemCollection:
-    """Download items locally, using appropriate download method.
-    Args:
-        item_col (pystac.ItemCollection): item collection with remote asset hrefs to download
-        wkdir (str): local working dir to use, make if not exist
-    Returns:
-        local_ic (pystac.ItemCollection): item collection with local asset hrefs
-    """
-
-    os.makedirs(wkdir, exist_ok=True)
-
-    items_local = []
-
-    for item in item_col:
-        logging.info("Downloading assets for item: %s", item.id)
-
-        dl_dir = os.path.join(wkdir, item.id)
-
-        os.makedirs(dl_dir, exist_ok=True)
-
-        item = pystac.Item.from_dict((s3_to_local(item=item.to_dict(), dl_folder=dl_dir)))
-
-        items_local.append(item)
-
-    local_ic = pystac.ItemCollection(items=items_local)
-
-    return local_ic
-
-
-def make_datacube(items: pystac.ItemCollection, bands, resolution) -> Dataset:
+def make_datacube(items: ItemCollection, bands, resolution) -> Dataset:
     """Convert stac item collection into xarray Dataset object. 
     Temporal compositing hard-coded to solar_day for now.
     Arg:
