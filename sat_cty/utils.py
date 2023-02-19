@@ -45,7 +45,7 @@ def bbox_to_geom(bbox: list) -> dict:
     return geometry
 
 
-def s3_to_local(item: Item, dl_folder: str) -> Item:
+def s3_to_local(item: dict, dl_folder: str) -> dict:
     """Take in pystac item, download its assets, and update the asset href to point
     to dl location.
     Args:
