@@ -87,13 +87,9 @@ def download_items_to_local(item_col: ItemCollection, bands: list, wkdir: str) -
 
     for item in item_col:
         logging.info("Downloading assets for item: %s", item.id)
-
         dl_dir = op.join(wkdir, item.id)
-
         makedirs(dl_dir, exist_ok=True)
-
         item = Item.from_dict((s3_to_local(item=item.to_dict(), dl_folder=dl_dir)))
-
         items_local.append(item)
 
     local_ic = ItemCollection(items=items_local)

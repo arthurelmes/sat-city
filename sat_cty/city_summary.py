@@ -37,7 +37,6 @@ def run_query(endpoint, collections, date_range, geometry) -> ItemCollection:
     return items
 
 
-
 def make_datacube(items: ItemCollection, bands, resolution) -> Dataset:
     """Convert stac item collection into xarray Dataset object. 
     Temporal compositing hard-coded to solar_day for now.
