@@ -72,11 +72,13 @@ def s3_to_local(item: dict, dl_folder: str) -> dict:
     return item
 
 
-def download_items_to_local(item_col: ItemCollection, bands: list, wkdir: str) -> ItemCollection:
+def download_items_to_local(item_col: ItemCollection, bands: list, wkdir: str, with_boto3=False) -> ItemCollection:
     """Download items locally, using appropriate download method.
     Args:
         item_col (pystac.ItemCollection): item collection with remote asset hrefs to download
+        bands (list): assets to download
         wkdir (str): local working dir to use, make if not exist
+        with_boto3 (bool): download items from S3 using boto3 sdk where possible
     Returns:
         local_ic (pystac.ItemCollection): item collection with local asset hrefs
     """

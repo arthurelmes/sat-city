@@ -107,7 +107,7 @@ if __name__ == "__main__":
     query_point = (-80.0,39.6)
 
     items = run_query(date_range="2020-01-01/2020-03-01", geometry=geom, collections=collections_landsat, endpoint=landsatlook_stac_endpoint)
-    items = download_items_to_local(items, bands, wkdir)
+    items = download_items_to_local(items, bands, wkdir, with_boto3=True)
 
     dc = make_datacube(items=items, bands=bands, resolution=10)
     dc = calc_ndvi(dc, red_band_name="B04", nir_band_name="B08")
