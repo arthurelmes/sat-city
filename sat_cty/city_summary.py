@@ -95,15 +95,19 @@ if __name__ == "__main__":
     # landsat_sr_endpoint = "https://landsatlook.usgs.gov/stac-server" 
 
     earthsearch_stac_endpoint = "https://earth-search.aws.element84.com/v0"
+    landsatlook_stac_endpoint = "https://landsatlook.usgs.gov/stac-server/"
+
     collections = ["sentinel-s2-l2a-cogs"]
+    collections_landsat = ["landsat-c2l2-st"]
 
     bands = ["B02", "B03", "B04", "B08"]
+    landsat_st_bands = ["lwir11", "qa_pixel"]
 
     bbox = [-80.04469820810723, 39.5691199181569, -79.8936372965484, 39.67742545310713]
     geom = bbox_to_geom(bbox)
     query_point = (-80.0,39.6)
 
-    items = run_query(date_range="2020-01-01/2020-01-16", geometry=geom, collections=collections, endpoint=earthsearch_stac_endpoint)
+    items = run_query(date_range="2020-01-01/2020-03-01", geometry=geom, collections=collections_landsat, endpoint=landsatlook_stac_endpoint)
     items = download_items_to_local(items, bands, wkdir)
 
     dc = make_datacube(items=items, bands=bands, resolution=10)
