@@ -5,6 +5,7 @@ from pystac import Item, ItemCollection
 import os.path as op
 from os import makedirs
 import logging
+import boto3
 
 def bbox_to_geom(bbox: list) -> dict:
     """Convert a bounding box to a geojson-formatted
@@ -45,9 +46,25 @@ def bbox_to_geom(bbox: list) -> dict:
     return geometry
 
 
-def s3_to_local(item: dict, dl_folder: str) -> dict:
-    """Take in pystac item, download its assets, and update the asset href to point
-    to dl location.
+def download_using_boto3(item: dict, dl_folder: str) -> dict:
+    """Take in pystac item, download its assets using boto3, 
+    and update the asset href to point to dl location.
+    Args:
+        item (pystac.Item): the item to download the assets for
+        dl_folder (str): the path to put the files
+
+    Returns:
+        item (pystac.Item): the item with downloaded assets and updated asset hrefs
+        
+    """
+    
+
+    return item
+
+
+def download_using_requests(item: dict, dl_folder: str) -> dict:
+    """Take in pystac item, download its assets using vanilla requests module, 
+    and update the asset href to point to dl location.
     Args:
         item (pystac.Item): the item to download the assets for
         dl_folder (str): the path to put the files
@@ -91,7 +108,10 @@ def download_items_to_local(item_col: ItemCollection, bands: list, wkdir: str, w
         logging.info("Downloading assets for item: %s", item.id)
         dl_dir = op.join(wkdir, item.id)
         makedirs(dl_dir, exist_ok=True)
-        item = Item.from_dict((s3_to_local(item=item.to_dict(), dl_folder=dl_dir)))
+        if with_boto3:
+            item = Item.from_dict((download_using_requests(item=item.to_dict(), dl_folder=dl_dir)))
+        else:    
+            item = Item.from_dict((download_using_requests(item=item.to_dict(), dl_folder=dl_dir)))
         items_local.append(item)
 
     local_ic = ItemCollection(items=items_local)
