@@ -6,6 +6,7 @@ import os.path as op
 from os import makedirs
 import logging
 import boto3
+from urllib.parse import urlparse
 
 def bbox_to_geom(bbox: list) -> dict:
     """Convert a bounding box to a geojson-formatted
@@ -57,7 +58,24 @@ def download_using_boto3(item: dict, dl_folder: str) -> dict:
         item (pystac.Item): the item with downloaded assets and updated asset hrefs
         
     """
-    
+
+    s3 = boto3.client('s3')
+    for v in item["assets"].values():
+        dl_url = v["alternate"]["s3"]["href"] if v.get("alternate", None) else v["href"]
+        if ".TIF" not in dl_url: # TODO check the actual bands of interest here, to avoid dling extra stuff
+            continue
+        fn = op.basename(dl_url)
+        f_path = op.join(dl_folder, fn)
+        if not op.exists(f_path):
+            parsed_url = urlparse(dl_url)
+            bucket = parsed_url.hostname
+            prefix = parsed_url.path[1:]
+            with open(f_path, 'wb') as f:
+                resp = s3.get_object(Bucket=bucket, Key=prefix, RequestPayer="requester")
+                response_content = resp['Body'].read()
+                f.write(response_content)
+
+        v["href"] = f_path
 
     return item
 
@@ -109,7 +127,7 @@ def download_items_to_local(item_col: ItemCollection, bands: list, wkdir: str, w
         dl_dir = op.join(wkdir, item.id)
         makedirs(dl_dir, exist_ok=True)
         if with_boto3:
-            item = Item.from_dict((download_using_requests(item=item.to_dict(), dl_folder=dl_dir)))
+            item = Item.from_dict((download_using_boto3(item=item.to_dict(), dl_folder=dl_dir)))
         else:    
             item = Item.from_dict((download_using_requests(item=item.to_dict(), dl_folder=dl_dir)))
         items_local.append(item)
