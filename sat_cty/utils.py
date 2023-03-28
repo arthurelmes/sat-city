@@ -57,17 +57,17 @@ def s3_to_local(item: dict, dl_folder: str) -> dict:
         
     """
 
-    for v in item["assets"].values():
-        fn = op.basename(v["href"])
-        f_path = op.join(dl_folder, fn)
-        if not op.exists(f_path):
-            with requests.get(v["href"], timeout=60, stream=True) as r:
-                r.raise_for_status()
-                with open(f_path, 'wb') as f:
-                    for chunk in r.iter_content(chunk_size=8192): 
-                        f.write(chunk)
-
-        v["href"] = f_path
+    for k in item["assets"].keys():
+        if k in bands:
+            fn = op.basename(item["assets"][k]["href"])
+            f_path = op.join(dl_folder, fn)
+            if not op.exists(f_path):
+                with requests.get(item["assets"][k]["href"], timeout=60, stream=True) as r:
+                    r.raise_for_status()
+                    with open(f_path, 'wb') as f:
+                        for chunk in r.iter_content(chunk_size=8192):
+                            f.write(chunk)
+            item["assets"][k]["href"] = f_path
 
     return item
 
