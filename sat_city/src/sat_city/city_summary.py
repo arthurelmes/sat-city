@@ -39,12 +39,12 @@ def run_query(endpoint, collections, date_range, geometry) -> ItemCollection:
 
 
 def make_datacube(items: ItemCollection, bands, resolution) -> Dataset:
-    """Convert stac item collection into xarray Dataset object. 
+    """Convert stac item collection into xarray Dataset object.
     Temporal compositing hard-coded to solar_day for now.
     Arg:
         items (pystac.ItemCollection): items to convert to datacube
     Return:
-        dc (Dataset): space-time datacube    
+        dc (Dataset): space-time datacube
     """
 
     logging.info("Making datacube for items: %s", items.items)
@@ -52,7 +52,7 @@ def make_datacube(items: ItemCollection, bands, resolution) -> Dataset:
     output_crs = CRS.from_epsg(items[0].properties["proj:epsg"])
 
     dc = stac_load(
-            items=items.items, 
+            items=items.items,
             bands=bands,
             resolution=resolution,
             groupby="solar_day",
@@ -90,9 +90,9 @@ if __name__ == "__main__":
     )
 
     wkdir = sys.argv[1] if len(sys.argv) > 1 else tempfile.mkdtemp()
-    
+
     # currently only the sentinel-2 data are downloadable from this script b/c missing auth for landsat
-    # landsat_sr_endpoint = "https://landsatlook.usgs.gov/stac-server" 
+    # landsat_sr_endpoint = "https://landsatlook.usgs.gov/stac-server"
 
     earthsearch_stac_endpoint = "https://earth-search.aws.element84.com/v0"
     landsatlook_stac_endpoint = "https://landsatlook.usgs.gov/stac-server/"
