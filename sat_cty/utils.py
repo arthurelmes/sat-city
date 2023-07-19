@@ -58,9 +58,9 @@ def s3_to_local(item: dict, dl_folder: str, bands: list) -> dict:
         
     """
 
-    for k in item["assets"].keys():
+    for v in item["assets"].values():
         if k in bands:
-            fn = op.basename(item["assets"][k]["href"])
+            fn = op.basename(v["href"])
             f_path = op.join(dl_folder, fn)
             if not op.exists(f_path):
                 with requests.get(item["assets"][k]["href"], timeout=60, stream=True) as r:
@@ -68,7 +68,7 @@ def s3_to_local(item: dict, dl_folder: str, bands: list) -> dict:
                     with open(f_path, 'wb') as f:
                         for chunk in r.iter_content(chunk_size=8192):
                             f.write(chunk)
-            item["assets"][k]["href"] = f_path
+            v["href"] = f_path
 
     return item
 

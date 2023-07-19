@@ -106,7 +106,7 @@ if __name__ == "__main__":
     geom = bbox_to_geom(bbox)
     query_point = (-80.0,39.6)
 
-    items = run_query(date_range="2020-01-01/2020-03-01", geometry=geom, collections=collections, endpoint=earthsearch_stac_endpoint)
+    items = run_query(date_range="2023-01-01/2023-03-01", geometry=geom, collections=collections, endpoint=earthsearch_stac_endpoint)
     items = download_items_to_local(items, bands, wkdir)
 
     dc = make_datacube(items=items, bands=bands, resolution=10)
