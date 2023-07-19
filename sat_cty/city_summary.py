@@ -6,6 +6,7 @@ import logging
 import sys
 from xarray import Dataset
 from pyproj import Proj
+import tempfile
 
 # need to import rioxarray in order to get 'rio' accessor in datacubes
 import rioxarray
@@ -88,7 +89,7 @@ if __name__ == "__main__":
         level=logging.INFO,
     )
 
-    wkdir = sys.argv[1] if len(sys.argv) > 1 else "sat-cty/data"
+    wkdir = sys.argv[1] if len(sys.argv) > 1 else tempfile.mkdtemp()
     
     # currently only the sentinel-2 data are downloadable from this script b/c missing auth for landsat
     # landsat_sr_endpoint = "https://landsatlook.usgs.gov/stac-server" 
