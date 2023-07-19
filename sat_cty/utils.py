@@ -6,6 +6,7 @@ import os.path as op
 from os import makedirs
 import logging
 
+
 def bbox_to_geom(bbox: list) -> dict:
     """Convert a bounding box to a geojson-formatted
     geometry.
@@ -45,7 +46,7 @@ def bbox_to_geom(bbox: list) -> dict:
     return geometry
 
 
-def s3_to_local(item: dict, dl_folder: str) -> dict:
+def s3_to_local(item: dict, dl_folder: str, bands: list) -> dict:
     """Take in pystac item, download its assets, and update the asset href to point
     to dl location.
     Args:
@@ -58,16 +59,16 @@ def s3_to_local(item: dict, dl_folder: str) -> dict:
     """
 
     for v in item["assets"].values():
-        fn = op.basename(v["href"])
-        f_path = op.join(dl_folder, fn)
-        if not op.exists(f_path):
-            with requests.get(v["href"], timeout=60, stream=True) as r:
-                r.raise_for_status()
-                with open(f_path, 'wb') as f:
-                    for chunk in r.iter_content(chunk_size=8192): 
-                        f.write(chunk)
-
-        v["href"] = f_path
+        if k in bands:
+            fn = op.basename(v["href"])
+            f_path = op.join(dl_folder, fn)
+            if not op.exists(f_path):
+                with requests.get(item["assets"][k]["href"], timeout=60, stream=True) as r:
+                    r.raise_for_status()
+                    with open(f_path, 'wb') as f:
+                        for chunk in r.iter_content(chunk_size=8192):
+                            f.write(chunk)
+            v["href"] = f_path
 
     return item
 
@@ -89,7 +90,7 @@ def download_items_to_local(item_col: ItemCollection, bands: list, wkdir: str) -
         logging.info("Downloading assets for item: %s", item.id)
         dl_dir = op.join(wkdir, item.id)
         makedirs(dl_dir, exist_ok=True)
-        item = Item.from_dict((s3_to_local(item=item.to_dict(), dl_folder=dl_dir)))
+        item = Item.from_dict((s3_to_local(item=item.to_dict(), dl_folder=dl_dir, bands=bands)))
         items_local.append(item)
 
     local_ic = ItemCollection(items=items_local)
