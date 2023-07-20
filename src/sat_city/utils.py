@@ -69,6 +69,7 @@ def s3_to_local(item: dict, dl_folder: str, bands: list) -> dict:
                         for chunk in r.iter_content(chunk_size=8192):
                             f.write(chunk)
             v["href"] = f_path
+            print("Garbage")
 
     return item
 
