@@ -1,4 +1,4 @@
-name: sat-cty
+name: sat-city
 channels:
   - conda-forge
   - defaults
