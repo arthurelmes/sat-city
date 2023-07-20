@@ -63,7 +63,7 @@ def s3_to_local(item: dict, dl_folder: str, bands: list) -> dict:
             fn = op.basename(v["href"])
             f_path = op.join(dl_folder, fn)
             if not op.exists(f_path):
-                with requests.get(item["assets"][k]["href"], timeout=60, stream=True) as r:
+                with requests.get(v["href"], timeout=60, stream=True) as r:
                     r.raise_for_status()
                     with open(f_path, 'wb') as f:
                         for chunk in r.iter_content(chunk_size=8192):
