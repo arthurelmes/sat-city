@@ -7,6 +7,7 @@ import sys
 from xarray import Dataset
 from pyproj import Proj
 import tempfile
+from argparse import ArgumentParser
 
 # need to import rioxarray in order to get 'rio' accessor in datacubes
 import rioxarray
@@ -80,7 +81,20 @@ def calc_ndvi(dc: Dataset, red_band_name: str, nir_band_name: str) -> Dataset:
     return dc
 
 
+def parse_args(args):
+    parser = ArgumentParser()
+
+    parser.add_argument("--dataset", choices=["landsat", "sentinel-2"], required=True)
+    parser.add_argument("--workdir", type=str, required=False)
+
+    # turn argparse namespace into dict
+    pargs = vars(parser.parse_args(args))
+
+    return pargs
+
 if __name__ == "__main__":
+
+    args = parse_args(sys.argv[1:])
 
     # set up logging
     logging.basicConfig(
@@ -89,25 +103,23 @@ if __name__ == "__main__":
         level=logging.INFO,
     )
 
-    wkdir = sys.argv[1] if len(sys.argv) > 1 else tempfile.mkdtemp()
+    wkdir = args.get("workdir", tempfile.mkdtemp())
 
     # currently only the sentinel-2 data are downloadable from this script b/c missing auth for landsat
-    # landsat_sr_endpoint = "https://landsatlook.usgs.gov/stac-server"
-
-    earthsearch_stac_endpoint = "https://earth-search.aws.element84.com/v0"
-    landsatlook_stac_endpoint = "https://landsatlook.usgs.gov/stac-server/"
-
-    collections = ["sentinel-s2-l2a-cogs"]
-    collections_landsat = ["landsat-c2l2-st"]
-
-    bands = ["B02", "B03", "B04", "B08"]
-    landsat_st_bands = ["lwir11", "qa_pixel"]
+    if args["dataset"] == "sentinel-2":
+        stac_endpoint = "https://earth-search.aws.element84.com/v0"
+        collections = ["sentinel-s2-l2a-cogs"]
+        bands = ["B02", "B03", "B04", "B08"]
+    else:
+        stac_endpoint = "https://landsatlook.usgs.gov/stac-server/"
+        collections = ["landsat-c2l2-st"]
+        bands = ["lwir11", "qa_pixel"]
 
     bbox = [-80.04469820810723, 39.5691199181569, -79.8936372965484, 39.67742545310713]
     geom = bbox_to_geom(bbox)
     query_point = (-80.0,39.6)
 
-    items = run_query(date_range="2023-01-01/2023-03-01", geometry=geom, collections=collections, endpoint=earthsearch_stac_endpoint)
+    items = run_query(date_range="2023-01-01/2023-03-01", geometry=geom, collections=collections, endpoint=stac_endpoint)
     items = download_items_to_local(items, bands, wkdir)
 
     dc = make_datacube(items=items, bands=bands, resolution=10)
