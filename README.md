@@ -2,7 +2,7 @@
 
 ### Authors:
  - Arthur Elmes (arthur.elmes@gmail.com)
- - Bily Brown (bilyhasmail@gmail.com)
+ - Bily Brown (bilyhasemail@gmail.com)
 
 
  ### Environment
