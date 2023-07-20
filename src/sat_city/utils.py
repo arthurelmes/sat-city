@@ -58,7 +58,7 @@ def s3_to_local(item: dict, dl_folder: str, bands: list) -> dict:
         
     """
 
-    for v in item["assets"].values():
+    for k, v in item["assets"].items():
         if k in bands:
             fn = op.basename(v["href"])
             f_path = op.join(dl_folder, fn)
