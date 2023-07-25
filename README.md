@@ -44,3 +44,11 @@ conda activate sat-city
  This will create a local file called `.python-version` that will activate your chosen
  python environment when you `cd` into this project's
  root dir. Use python version 3.10.
+
+ Using `pip-compile` requires installation of `pip-tools` via
+ pip. Then, use `pip-compile -o requirements.txt --resolver=backtracking requirements.in` to
+ create a requirements.txt file with all dependencies wrangled. The
+ idea for requirements.in is to specify and pin requirements loosely;
+ `pip-compile` then creates a fully specified, tightly-pinned environment
+ definition. Then, use the regular `pip install -r requirements.txt` to
+ actually install all the libraries.
