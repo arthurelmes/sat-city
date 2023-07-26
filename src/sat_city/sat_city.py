@@ -1,13 +1,16 @@
+import matplotlib.pyplot as plt
 from pystac_client import Client
 from pystac import ItemCollection
 from odc.stac import stac_load
 from pyproj import CRS
 import logging
 import sys
-from xarray import Dataset
+from xarray import Dataset, DataArray
 from pyproj import Proj
 import tempfile
 from argparse import ArgumentParser
+import os.path as op
+import re
 
 # need to import rioxarray in order to get 'rio' accessor in datacubes
 import rioxarray
@@ -81,6 +84,23 @@ def calc_ndvi(dc: Dataset, red_band_name: str, nir_band_name: str) -> Dataset:
     return dc
 
 
+def plot_results(arr: DataArray, out_dir: str, title: str="NDVI") -> None:
+    """Use xarray's matplotlib wrapper to make a simple output plot.
+    Args:
+        arr: the 1d array to plot
+        out_dir: save location
+        title: top-centered title for output, default=NDVI
+    """
+    arr.plot()
+    plt.title(title)
+
+    # the regex substitution catches any illegal filename characters
+    # (mostly from Windows), and straight up deletes 'em
+    out_fn = re.sub(r"[!<>\\\/*?|:\"\s]", "", title) + ".png"
+
+    plt.savefig(op.join(out_dir, out_fn))
+
+
 def parse_args(args):
     parser = ArgumentParser()
 
@@ -146,4 +166,4 @@ if __name__ == "__main__":
 
     sample_coord_array_1d = dc.NDVI.isel(x=x_offset_cols, y=y_offset_cols)
 
-    print(sample_coord_array_1d)
+    plot_results(sample_coord_array_1d, wkdir)
