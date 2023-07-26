@@ -10,9 +10,7 @@ affine==2.4.0
     #   odc-stac
     #   rasterio
 attrs==23.1.0
-    # via
-    #   jsonschema
-    #   rasterio
+    # via rasterio
 boto3==1.28.11
     # via boto3-utils
 boto3-utils==0.4.1
@@ -60,8 +58,6 @@ jmespath==1.0.1
     #   botocore
 jsonpath-ng==1.5.3
     # via cirrus-lib
-jsonschema==4.17.3
-    # via pystac
 locket==1.0.0
     # via partd
 numpy==1.25.1
@@ -99,14 +95,12 @@ pyproj==3.4.1
     #   -r requirements.in
     #   odc-geo
     #   rioxarray
-pyrsistent==0.19.3
-    # via jsonschema
-pystac[validation]==1.8.2
+pystac==1.6.1
     # via
     #   -r requirements.in
     #   odc-stac
     #   pystac-client
-pystac-client==0.7.2
+pystac-client==0.5.1
     # via -r requirements.in
 python-dateutil==2.8.2
     # via
