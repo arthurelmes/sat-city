@@ -27,23 +27,26 @@ conda activate sat-city
 ```
 
  #### pyenv+pip-tools
- `pyenv` uses `pip`'s native virtual environment approach (`venv`) to maintain
- isolated python environments on a per-project basis. This allows each project
- to maintain its own python interpreter and libraries that are separate from
- the system python interpreter and all other projects. `pip-compile`, part of
- `pip-tools`, can be used to create a complete `requirements.txt` using a minimally
- specified `requirements.in`. This is similar to `conda`, but without requiring
- the larger `conda` overhead.
+ `pyenv` uses enables usage of multiple, isolated python interpreters on your
+ system, which can be automatically activated on a per-project basis.
+ When used with the `pyenv-virtualenv` plugin, you can create and manage isolated
+ virtual environments.
+
+ `pip-compile`, part of `pip-tools`, can be used to create a complete
+ `requirements.txt` using a minimally specified `requirements.in`. This is similar
+ to `conda`, but without requiring the larger `conda` overhead.
 
  The `pyenv` installation instructions are here:
  https://github.com/pyenv/pyenv?search=1#usage
- Follow the directions here to create a python
- environment specific to this project, using the
- `pyenv local ...` command:
- https://github.com/pyenv/pyenv?search=1#usage.
- This will create a local file called `.python-version` that will activate your chosen
- python environment when you `cd` into this project's
- root dir. Use python version 3.10.
+ Use `pyenv install 3.10` to install python 3.10. You can install any set of python
+ versions you need for your various projects -- this keeps them organized and prevents
+ them from stepping on each other's toes.
+
+ Then, in order to construct a virtual environmnet, `cd` into this project's root dir, and
+ use `pyenv virtualenv 3.10 sat-city-env`. This will create a virtual environment (similar to
+ a conda environment) into which you'll install the required libraries. It also creates a
+ local file called `.python-version` that will activate your chosen python environment when
+ you `cd` into this project's root dir.
 
  Using `pip-compile` requires installation of `pip-tools` via
  pip. Then, use `pip-compile -o requirements.txt --resolver=backtracking requirements.in` to
