@@ -9,10 +9,10 @@
  You'll need to use a Python runtime environment with the required libraries.
 
  There are two approaches, one of which may be deprecated soon to avoid confusion
- and verision divergences:
+ and version divergences:
 
  #### Conda
- The `conda` environment and package managemener can be used to create an
+ The `conda` environment and package manager can be used to create an
  environment with the required libraries.
  The installation steps are here:
  https://docs.conda.io/projects/conda/en/latest/user-guide/install/.
@@ -27,7 +27,7 @@ conda activate sat-city
 ```
 
  #### pyenv+pip-tools
- `pyenv` uses enables usage of multiple, isolated python interpreters on your
+ `pyenv` enables usage of multiple, isolated python interpreters on your
  system, which can be automatically activated on a per-project basis.
  When used with the `pyenv-virtualenv` plugin, you can create and manage isolated
  virtual environments.
