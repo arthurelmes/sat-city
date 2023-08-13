@@ -56,3 +56,9 @@ conda activate sat-city
  `pip-compile` then creates a fully specified, tightly-pinned environment
  definition. Then, use the regular `pip install -r requirements.txt` to
  actually install all the libraries.
+
+
+### Contributing
+
+Please use the changelog format shown at https://keepachangelog.com/en/1.1.0/
+to update the changelog as part of your pull request.
