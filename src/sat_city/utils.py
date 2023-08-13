@@ -13,7 +13,7 @@ def bbox_to_geom(bbox: list) -> dict:
     Arg:
         bbox (list): bouning box with coordinate order left, bottom, right, top
     Return:
-        geometry (dict): geojson-formatted geometry, as a dict  
+        geometry (dict): geojson-formatted geometry, as a dict
     """
     geometry = {
       "type": "Polygon",
@@ -55,7 +55,7 @@ def s3_to_local(item: dict, dl_folder: str, bands: list) -> dict:
 
     Returns:
         item (pystac.Item): the item with downloaded assets and updated asset hrefs
-        
+
     """
 
     for k, v in item["assets"].items():
