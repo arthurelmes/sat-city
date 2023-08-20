@@ -4,3 +4,4 @@ odc-stac~=0.3.4
 cirrus-lib~=0.8.1
 pyproj
 rioxarray
+matplotlib
