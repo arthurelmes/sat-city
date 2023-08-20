@@ -42,7 +42,7 @@ def run_query(endpoint, collections, date_range, geometry) -> ItemCollection:
     return items
 
 
-def make_datacube(items: ItemCollection, bands, resolution) -> Dataset:
+def make_datacube(items: ItemCollection, bands, resolution, bbox) -> Dataset:
     """Convert stac item collection into xarray Dataset object.
     Temporal compositing hard-coded to solar_day for now.
     Arg:
@@ -139,10 +139,10 @@ if __name__ == "__main__":
     geom = bbox_to_geom(bbox)
     query_point = (-80.0,39.6)
 
-    items = run_query(date_range="2023-01-01/2023-03-01", geometry=geom, collections=collections, endpoint=stac_endpoint)
+    items = run_query(date_range="2023-02-01/2023-03-01", geometry=geom, collections=collections, endpoint=stac_endpoint)
     items = download_items_to_local(items, bands, wkdir)
 
-    dc = make_datacube(items=items, bands=bands, resolution=10)
+    dc = make_datacube(items=items, bands=bands, resolution=10, bbox=bbox)
     dc = calc_ndvi(dc, red_band_name="B04", nir_band_name="B08")
 
     # convert query lon/lat to UTM meters
