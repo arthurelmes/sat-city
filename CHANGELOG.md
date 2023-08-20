@@ -11,5 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added a CHANGELOG
 - Add instructions to use pip-compile and pyenv for local environment management
+- Add a unit test for bbox converter
 
 [unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/HEAD
